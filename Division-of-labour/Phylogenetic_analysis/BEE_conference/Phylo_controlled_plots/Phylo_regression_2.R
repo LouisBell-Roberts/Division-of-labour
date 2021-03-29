@@ -9,23 +9,13 @@ library(ape)
 library(phylolm)
 
 #Data file
-d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Cleaned/Data.csv", header = T)
+d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
 d$Caste1 <- as.numeric(as.character(d$Caste1))
 data <- d
 
-#Tree file - species. This tree is in NEWICK format
-anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen/ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre")
+#Tree file - species
+anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
 
-#Make tree ultrametric
-u.anttree_species <- chronoMPL(anttree_species)
-is.ultrametric(u.anttree_species)
-
-##Ensure that the branch lengths between the orginial and final trees are the same
-plot(anttree_species$edge.length, u.anttree_species$edge.length, xlab="Original tree", ylab="Post-chronos tree", pch=20, bty="n")
-abline(a=0, b=1, col="gray", lwd=0.5) #This works
-
-#Write the ultrametric tree to file as NEWICK tree
-#write.tree(u.anttree_species, file='ultrametric_Nelsen_sp.tre')
 
 #########
 
@@ -40,7 +30,7 @@ plotTree(pruned.tree_sp,ftype="i",fsize=0.4,lwd=1)
 
 #Filter through my dataframe and select only the rows that match the tips of my tree
 antdata_MF.1<-filter(antdata_MF, animal %in% pruned.tree_sp$tip.label)
-View(antdata_MF.1)
+#View(antdata_MF.1)
 
 #Configure dataframe into correct formatting
 antdata_MF.2 <- cbind(antdata_MF.1$animal, antdata_MF.1)
@@ -52,9 +42,7 @@ antdata_MF.4 <- antdata_MF.3 %>%
     animal = `antdata_MF.1$animal`
   )
 
-plot(antdata_MF.4$eff.mating.freq.MEAN.harmonic, antdata_MF.4$Caste1)
-abline(CasteVs.MF_Phy_lm)
-
+#Models
 CasteVs.MF_Phy_lm <- phylolm(Caste1~eff.mating.freq.MEAN.harmonic,data = antdata_MF.4,phy = pruned.tree_sp)
 CasteVs.MF_Phy_glm <- phyloglm(Caste1~eff.mating.freq.MEAN.harmonic,data = antdata_MF.4, phy = pruned.tree_sp, method = "poisson_GEE")
 CasteVs.MF_lm <- lm(Caste1 ~ eff.mating.freq.MEAN.harmonic, data = antdata_MF.4)
@@ -63,12 +51,40 @@ summary(CasteVs.MF_Phy_lm)
 summary(CasteVs.MF_Phy_glm)
 summary(CasteVs.MF_lm)
 
+#Plot regressions
+plot(antdata_MF.4$eff.mating.freq.MEAN.harmonic, antdata_MF.4$Caste1)
+abline(CasteVs.MF_Phy_lm)
+
+
 #Assumption diagnostics
 par(mfrow=c(2,2))
 plot(density(CasteVs.MF_Phy_lm$residuals))
 qqnorm(CasteVs.MF_Phy_lm$residuals); qqline(CasteVs.MF_Phy_lm$residuals)
 plot(CasteVs.MF_Phy_lm$fitted.values, CasteVs.MF_Phy_lm$residuals)
 plot(CasteVs.MF_Phy_lm)
+
+
+
+
+#ggplot2 - plotting raw data for MF and caste
+ggplot(antdata_MF.4, aes(x = eff.mating.freq.MEAN.harmonic, y = Caste1)) + 
+  geom_jitter(width = 0.05, height = 0.05, size = 2) +
+  theme_classic() +
+  ggtitle("Caste Number vs. Mating Frequency") +
+  xlab("Mating Frequency") +
+  ylab("Caste Number") +
+  theme(plot.title = element_text(hjust = 0.5, size = 22, face = "bold"), axis.line = element_line(colour = 'black', size = 1),
+        axis.ticks = element_line(colour = "black", size = 1), 
+        axis.text.x = element_text(face="bold", color="black", 
+                                   size=22),
+        axis.text.y = element_text(face="bold", color = "black", 
+                                   size=22),
+        axis.text=element_text(size=22),
+        axis.title=element_text(size=22,face="bold"))
+
+
+
+
 #########
 
 
@@ -84,7 +100,7 @@ plotTree(pruned.tree_sp_CS,ftype="i",fsize=0.4,lwd=1)
 
 #Filter through my dataframe and select only the rows that match the tips of my tree
 antdata_CS.1<-filter(antdata_CS, animal %in% pruned.tree_sp_CS$tip.label)
-View(antdata_CS.1)
+#View(antdata_CS.1)
 
 #Configure dataframe into correct formatting
 antdata_CS.2 <- cbind(antdata_CS.1$animal, antdata_CS.1)
@@ -96,17 +112,47 @@ antdata_CS.4 <- antdata_CS.3 %>%
     animal = `antdata_CS.1$animal`
   )
 
-plot(log(antdata_CS.4$colony.size), antdata_CS.4$Caste1)
-abline(CasteVs.CS_lm)
-
-CasteVs.CS_Phy_lm <- phylolm(formula = Caste1~colony.size,data = antdata_CS.4,phy = pruned.tree_sp_CS)
-CasteVs.CS_Phy_glm <- phyloglm(Caste1~colony.size,data = antdata_CS.4, phy = pruned.tree_sp_CS, method = "poisson_GEE")
-CasteVs.CS_lm <- lm(Caste1 ~ colony.size, data = antdata_CS.4)
+#Models
+CasteVs.CS_Phy_lm <- phylolm(formula = Caste1~log(colony.size),data = antdata_CS.4,phy = pruned.tree_sp_CS)
+CasteVs.CS_Phy_glm <- phyloglm(Caste1~log(colony.size),data = antdata_CS.4, phy = pruned.tree_sp_CS, method = "poisson_GEE")
+CasteVs.CS_lm <- lm(Caste1 ~ log(colony.size), data = antdata_CS.4)
 
 summary(CasteVs.CS_Phy_lm)
 summary(CasteVs.CS_Phy_glm)
 summary(CasteVs.CS_lm)
+coef(CasteVs.CS_Phy_lm)
+coef(CasteVs.CS_Phy_glm)
+coef(CasteVs.CS_lm)
 
+#Plot regressions
+plot(log(antdata_CS.4$colony.size), antdata_CS.4$Caste1)
+abline(CasteVs.CS_Phy_lm)
+
+
+#Diagnostics
+par(mfrow=c(2,2))
+plot(density(CasteVs.CS_Phy_lm$residuals))
+qqnorm(CasteVs.CS_Phy_lm$residuals); qqline(CasteVs.CS_Phy_lm$residuals)
+plot(CasteVs.CS_Phy_lm$fitted.values, CasteVs.CS_Phy_lm$residuals)
+plot(CasteVs.CS_Phy_lm)
+
+
+
+#ggplot2 - plotting raw data for CS and caste
+ggplot(antdata_CS.4, aes(x = log(colony.size), y = Caste1)) + 
+  geom_point(size = 3) +
+  theme_classic() +
+  ggtitle("Caste Number vs. log Colony Size") +
+  xlab("log Colony Size") +
+  ylab("Caste Number") +
+  theme(plot.title = element_text(hjust = 0.5, size = 22, face = "bold"), axis.line = element_line(colour = 'black', size = 1),
+        axis.ticks = element_line(colour = "black", size = 1), 
+        axis.text.x = element_text(face="bold", color="black", 
+                                   size=22),
+        axis.text.y = element_text(face="bold", color = "black", 
+                                   size=22),
+        axis.text=element_text(size=22),
+        axis.title=element_text(size=22,face="bold"))
 
 #########
 
@@ -125,7 +171,7 @@ plotTree(pruned.tree_sp_CS_MF,ftype="i",fsize=0.4,lwd=1)
 
 #Filter through my dataframe and select only the rows that match the tips of my tree
 antdata_CS_MF.1<-filter(antdata_CS_MF, animal %in% pruned.tree_sp_CS_MF$tip.label)
-View(antdata_CS_MF.1)
+#View(antdata_CS_MF.1)
 
 #Configure dataframe into correct formatting
 antdata_CS_MF.2 <- cbind(antdata_CS_MF.1$animal, antdata_CS_MF.1)
@@ -138,9 +184,9 @@ antdata_CS_MF.4 <- antdata_CS_MF.3 %>%
   )
 
 
-CasteVs.CS_MF_Phy_lm <- phylolm(formula = Caste1~colony.size+eff.mating.freq.MEAN.harmonic,data = antdata_CS_MF.4,phy = pruned.tree_sp_CS_MF)
-CasteVs.CS_MF_Phy_glm <- phyloglm(Caste1~colony.size*eff.mating.freq.MEAN.harmonic,data = antdata_CS_MF.4, phy = pruned.tree_sp_CS_MF, method = "poisson_GEE")
-CasteVs.CS_MF_lm <- lm(Caste1 ~ colony.size+eff.mating.freq.MEAN.harmonic, data = antdata_CS_MF.4)
+CasteVs.CS_MF_Phy_lm <- phylolm(formula = Caste1~colony.size*eff.mating.freq.MEAN.harmonic,data = antdata_CS_MF.4,phy = pruned.tree_sp_CS_MF)
+CasteVs.CS_MF_Phy_glm <- phyloglm(Caste1~log(colony.size)*eff.mating.freq.MEAN.harmonic,data = antdata_CS_MF.4, phy = pruned.tree_sp_CS_MF, method = "poisson_GEE")
+CasteVs.CS_MF_lm <- lm(Caste1 ~ colony.size*eff.mating.freq.MEAN.harmonic, data = antdata_CS_MF.4)
 
 summary(CasteVs.CS_MF_Phy_lm)
 summary(CasteVs.CS_MF_Phy_glm)

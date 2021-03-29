@@ -13,7 +13,7 @@ library(corHMM)
 library(caper)
 
 #May be smart to treat caste as a categorical variable rather than as a numerical variable. Not sure yet
-d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Cleaned/Data.csv", header = T)
+d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
 d$Caste1 <- as.numeric(as.character(d$Caste1))
 data <- d
 
@@ -21,7 +21,7 @@ anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st
 
 #Select only ant species
 antdata<-filter(data, type=="ant")
-View(antdata)
+#View(antdata)
 
 ########
 
@@ -49,7 +49,7 @@ plotTree(pruned.tree_sp,ftype="i",fsize=0.4,lwd=1)
 
 #Filter through my dataframe and select only the rows that match the tips of my tree
 antdata_MF_Caste_bin.1<-filter(antdata_MF_Caste_bin, animal %in% pruned.tree_sp$tip.label)
-View(antdata_MF_Caste_bin.1)
+#View(antdata_MF_Caste_bin.1)
 
 #Select columns of interest: animal, MF, caste
 antdata_MF_Caste_bin.2 <- antdata_MF_Caste_bin.1 %>% dplyr::select(animal, eff.mating.freq.MEAN.harmonic, Caste1)
@@ -102,17 +102,18 @@ plot.fitPagel(ant_correlated_MF_Caste)
 #### WHAT TO DO IF I HAVE CONTINUOUS VARIABLE? (e.g. colony size) - are there correlated evolution models for continuous traits or do I need to make arbitrary cutoff?
 #Could use a cut of 1000 - values start to rise quite rapidly after this in my data
 antdata_CS <- filter(antdata, Caste1 >=1, colony.size >=1)
-plot(ln(antdata_CS$colony.size))
-View(antdata_CS)
-mode(antdata_CS$colony.size)
-axis(2, at = seq(0, 20, by = 1))
-axis(side=2,at=c(1:20))
+
+#plot(ln(antdata_CS$colony.size))
+#View(antdata_CS)
+#mode(antdata_CS$colony.size)
+#axis(2, at = seq(0, 20, by = 1))
+#axis(side=2,at=c(1:20))
 
 #Make data binary for CS
 antdata_CS_bin <- antdata_CS
 #low<=1000  high>1000
 antdata_CS_bin$colony.size<- cut(antdata_CS$colony.size,
-                                                   breaks=c(-Inf, 1000, Inf),
+                                                   breaks=c(-Inf, 1500, Inf),
                                                    labels=c("low","high"))
 
 #Make data binary for Caste
@@ -129,7 +130,7 @@ plotTree(pruned.tree_sp,ftype="i",fsize=0.4,lwd=1)
 
 #Filter through my dataframe and select only the rows that match the tips of my tree
 antdata_CS_Caste_bin.1<-filter(antdata_CS_Caste_bin, animal %in% pruned.tree_sp$tip.label)
-View(antdata_CS_Caste_bin.1)
+#View(antdata_CS_Caste_bin.1)
 
 #Select columns of interest: animal, CS, caste
 antdata_CS_Caste_bin.2 <- antdata_CS_Caste_bin.1 %>% dplyr::select(animal, colony.size, Caste1)

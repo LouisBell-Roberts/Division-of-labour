@@ -4,7 +4,7 @@
 
 library(tidyverse)
 
-d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Cleaned/Data.csv", header = T)
+d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
 d$Caste1 <- as.numeric(as.character(d$Caste1))
 data <- d
 
@@ -38,7 +38,7 @@ summary(CasteVs.MF_glm)
 
 #Base R plot
 plot(Caste1 ~ eff.mating.freq.MEAN.harmonic, antdata_MF, xlim=c(0,30), ylim=c(0,5))
-abline(CasteVs.MF_lm)
+abline(CasteVs.MF_glm)
 
 #ggplot2
 #linear model
@@ -73,7 +73,7 @@ theme(plot.title = element_text(hjust = 0.5))
 
 #Caste vs. CS filtering
 antdata_CS <- filter(data, type == 'ant', Caste1 >=1, colony.size >=1)
-View(antdata_CS)
+#View(antdata_CS)
 
 #Plot CS against Caste
 plot(antdata_CS$colony.size, antdata_CS$Caste1)
@@ -82,7 +82,7 @@ plot(log(antdata_CS$colony.size), antdata_CS$Caste1)
 #Create linear model for Caste vs. Cs
 CasteVs.CS_lm <- lm(Caste1 ~ log(colony.size), data = antdata_CS)
 CasteVs.CS_lm <- lm(Caste1 ~ colony.size, data = antdata_CS)
-summary(CasteVs.CS_lm) #R-squared is 0.25 when log(CS)
+summary(CasteVs.CS_lm) #R-squared is 0.21 when log(CS)
 
 #Base R plot
 plot(Caste1 ~ log(colony.size), antdata_CS, xlim=c(0,20), ylim=c(0,5))
@@ -127,6 +127,14 @@ ggtitle("Caste Number vs. log(Colony Size)") +
   xlab("log(Colony Size)") +
   ylab("Caste Number") +
   theme(plot.title = element_text(hjust = 0.5))
+
+
+
+
+
+
+
+
 
 
 

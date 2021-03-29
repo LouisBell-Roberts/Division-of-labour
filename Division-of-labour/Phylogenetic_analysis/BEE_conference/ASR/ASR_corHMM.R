@@ -13,7 +13,7 @@ library(corHMM)
 library(caper)
 
 #May be smart to treat caste as a categorical variable rather than as a numerical variable. Not sure yet
-d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Cleaned/Data.csv", header = T)
+d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
 d$Caste1 <- as.numeric(as.character(d$Caste1))
 data <- d
 
@@ -21,11 +21,11 @@ anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st
 
 #Select only ant species
 antdata<-filter(data, type=="ant")
-View(antdata)
+#View(antdata)
 
 #Remove missing data
 antdata_caste <- filter(antdata, Caste1 >= 0)
-View(antdata_caste)
+#View(antdata_caste)
 
 #Prune database and phylogeny
 
@@ -43,24 +43,25 @@ View(antdata_caste.1)
 antdata_caste.2 <- antdata_caste.1 %>% dplyr::select(animal, Caste1)
 
 #ASR
-ancestral_hrm1<-corHMM(phy = pruned.tree_sp, data = antdata_caste.2,rate.cat = 1)
-ancestral_hrm2<-corHMM(phy = pruned.tree_sp, data = antdata_caste.2,rate.cat = 2)
-ancestral_hrm3<-corHMM(phy = pruned.tree_sp, data = antdata_caste.2,rate.cat = 1, model = "ER")
-ancestral_hrm4<-corHMM(phy = pruned.tree_sp, data = antdata_caste.2,rate.cat = 1, model = "ARD")
+#ancestral_hrm1<-corHMM(phy = pruned.tree_sp, data = antdata_caste.2,rate.cat = 1)
+#ancestral_hrm2<-corHMM(phy = pruned.tree_sp, data = antdata_caste.2,rate.cat = 2)
+#ancestral_hrm3<-corHMM(phy = pruned.tree_sp, data = antdata_caste.2,rate.cat = 1, model = "ER")
+#ancestral_hrm4<-corHMM(phy = pruned.tree_sp, data = antdata_caste.2,rate.cat = 1, model = "ARD")
 ancestral_hrm5<-corHMM(phy = pruned.tree_sp, data = antdata_caste.2,rate.cat = 1, model = "SYM")
 
 
 #Model selection - lower AIC is better
-ancestral_hrm1$AICc
-ancestral_hrm2$AICc
-ancestral_hrm3$AICc
-ancestral_hrm4$AICc
+#ancestral_hrm1$AICc
+#ancestral_hrm2$AICc
+#ancestral_hrm3$AICc
+#ancestral_hrm4$AICc
 ancestral_hrm5$AICc #has the lowest AIC
 
 #Plot ASR
 plotvec<-as.factor(antdata_caste.2$Caste1[match(pruned.tree_sp$tip.label,table=antdata_caste.2$animal)])
-plotRECON(phy=ancestral_hrm5$phy,likelihoods = ancestral_hrm5$states,pie.cex=0.3, piecolors = c("red", "blue", "green", "yellow"),
-          tip.color = c("red", "blue", "green", "yellow")[plotvec])
+plotRECON(phy=ancestral_hrm5$phy,likelihoods = ancestral_hrm5$states,pie.cex=0.3, show.tip.label = T,
+          piecolors = c("red","black", "yellow", "purple"),
+          tip.color = c("red","black", "yellow", "purple")[plotvec])
 
 
 
