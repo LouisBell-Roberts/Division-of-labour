@@ -9,13 +9,14 @@ library(ape)
 library(phylolm)
 
 #Data file
-d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+#d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+d <- read.csv(file.choose(), header = T)
 d$Caste1 <- as.numeric(as.character(d$Caste1))
 data <- d
 
 #Tree file - species
-anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
-
+#anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
+anttree_species <- read.tree(file.choose())
 
 #########
 
@@ -54,6 +55,7 @@ summary(CasteVs.MF_lm)
 #Plot regressions
 plot(antdata_MF.4$eff.mating.freq.MEAN.harmonic, antdata_MF.4$Caste1)
 abline(CasteVs.MF_Phy_lm)
+abline(CasteVs.MF_lm)
 
 
 #Assumption diagnostics
@@ -127,6 +129,8 @@ coef(CasteVs.CS_lm)
 #Plot regressions
 plot(log(antdata_CS.4$colony.size), antdata_CS.4$Caste1)
 abline(CasteVs.CS_Phy_lm)
+abline(CasteVs.CS_lm)
+
 
 
 #Diagnostics

@@ -4,7 +4,8 @@
 
 library(tidyverse)
 
-d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+#d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+d <- read.csv(file.choose(), header = T)
 d$Caste1 <- as.numeric(as.character(d$Caste1))
 data <- d
 

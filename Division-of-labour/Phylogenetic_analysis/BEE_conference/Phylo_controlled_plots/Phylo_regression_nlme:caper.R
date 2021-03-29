@@ -14,12 +14,14 @@ library(tidyverse)
 #Data file
 #otherd<-read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Cleaned/Barbetdata.csv", header = T)
 
-d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+#d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+d <- read.csv(file.choose(), header = T)
 d$Caste1 <- as.numeric(as.character(d$Caste1))
 data <- d
 
 #Tree file - species
-anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
+#anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
+anttree_species <- read.tree(file.choose())
 
 #########
 #Caste vs. MF filtering
@@ -56,6 +58,14 @@ coef(pglsModel)
 plot(antdata_MF.4$Caste1 ~ antdata_MF.4$eff.mating.freq.MEAN.harmonic)
 #abline(a = coef(pglsModel)[1], b = coef(pglsModel)[2])
 abline(pglsModel)
+
+#Diagnostics
+par(mfrow=c(2,2))
+plot(density(pglsModel$residuals))
+qqnorm(pglsModel$residuals); qqline(pglsModel$residuals)
+plot(pglsModel$fitted, pglsModel$residuals)
+
+
 
 ##With caper
 antdata_MF.5 <- dplyr::select(antdata_MF.1, animal, eff.mating.freq.MEAN.harmonic, Caste1)

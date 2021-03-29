@@ -13,12 +13,14 @@ library(corHMM)
 library(caper)
 
 #May be smart to treat caste as a categorical variable rather than as a numerical variable. Not sure yet
-d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+#d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+d <- read.csv(file.choose(), header = T)
 d$Caste1 <- as.numeric(as.character(d$Caste1))
 data <- d
 
-anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
-
+#anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
+anttree_species <- read.tree(file.choose())
+  
 #Select only ant species
 antdata<-filter(data, type=="ant")
 #View(antdata)
@@ -37,7 +39,7 @@ plotTree(pruned.tree_sp,ftype="i",fsize=0.4,lwd=1)
 
 #Filter through my dataframe and select only the rows that match the tips of my tree
 antdata_caste.1<-filter(antdata_caste, animal %in% pruned.tree_sp$tip.label)
-View(antdata_caste.1)
+#View(antdata_caste.1)
 
 #Select only the animal and caste columns
 antdata_caste.2 <- antdata_caste.1 %>% dplyr::select(animal, Caste1)
