@@ -106,7 +106,7 @@ View(a %>% select(Genus, animal, colony.size, eff.mating.freq.MEAN.harmonic, Cas
 
 
 
-###############################Ancestral state reconstruction_Mating Frequency########################################
+###############################Ancestral state reconstruction_Mating Frequency - at the GENUS level ########################################
 #continuous trait: eff.mating.freq.MEAN.harmonic
 
 #######CHANGE WORKING DIRECTORY#######
@@ -115,7 +115,6 @@ setwd("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Cleaned
 library(ape)
 library(phytools)
 library(geiger)
-#doesn't seem to be working library(phylolm)
 library(corHMM)
 library(caper)
 library(stringr)
@@ -123,9 +122,10 @@ library(dplyr)
 library(tidyverse)
 
 #Read in data file
-antdata <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Cleaned/Data.csv", header = T)
+antdata <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
 #Read in genus-level tree file
-anttree <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Genus_tree/Genus_Level_ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre")
+#anttree <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Genus_tree/Genus_Level_ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre")
+anttree <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Genus_polytomy_tree.tre")
 
 #Creates a data frame which splits the "animal" column into a species and a genus name
 #Dataframe with numberous useful columns - however this may screw up the analysis further on
@@ -205,6 +205,176 @@ plot(obj,legend=0.7*max(nodeHeights(pruned.tree)),
 phenogram(pruned.tree,data4,fsize=0.6,spread.costs=c(1,0))
 
 
+
+
+
+
+
+
+
+
+
+
+###############################Ancestral state reconstruction_Mating Frequency - at the SPECIES level ########################################
+#continuous trait: eff.mating.freq.MEAN.harmonic
+
+#######CHANGE WORKING DIRECTORY#######
+setwd("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Cleaned")
+#Required packages
+library(ape)
+library(phytools)
+library(geiger)
+library(corHMM)
+library(caper)
+library(stringr)
+library(dplyr)
+library(tidyverse)
+
+#Read in data file
+data <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+#Read in genus-level tree file
+#anttree <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Genus_tree/Genus_Level_ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre")
+anttree <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Genus_polytomy_tree.tre")
+
+#Select only ant species
+antdata<-filter(data, type=="ant")
+#View(antdata)
+
+#Remove missing data
+antdata_MF <- filter(antdata, eff.mating.freq.MEAN.harmonic >= 0)
+View(antdata_MF)
+
+###Prune tree
+#Match the tip labels from the tree and the species from the database and prune the phylogeny accordingly
+#It is the material that is in the first named set, that is not in the second named set
+pruned.tree<-drop.tip(anttree, setdiff(anttree$tip.label, antdata_MF$animal))
+pruned.tree
+plot.phylo(pruned.tree)
+plotTree(pruned.tree,ftype="i",fsize=0.4,lwd=1)
+
+#Filter through my dataframe and select only the rows that match the tips of my tree
+antdata_MF.1<-filter(antdata_MF, animal %in% pruned.tree$tip.label)
+View(antdata_MF.1)
+
+#Select only the animal and caste columns
+antdata_MF.2 <- antdata_MF.1 %>% dplyr::select(animal, eff.mating.freq.MEAN.harmonic)
+
+#Log transform the mating frequency data
+antdata_MF.3<-antdata_MF.2
+antdata_MF.3$eff.mating.freq.MEAN.harmonic<-log(antdata_MF.2$eff.mating.freq.MEAN.harmonic)
+
+#Convert the values in a column into row names in an existing data frame
+#So that my data is formatted in the same way as the tutorial
+antdata_MF.4<-antdata_MF.3 %>% remove_rownames() %>% column_to_rownames(var="animal")
+View(antdata_MF.4)
+
+###Ensure that phylogeny tip labels are exactly matched to the row names of the database
+a<-name.check(pruned.tree,antdata_MF.4)
+a
+
+#Visualise as a dot tree
+dotTree(pruned.tree,antdata_MF.4,length=20,ftype="i")
+
+#Set the dataframe to a vector
+antdata_MF.5<-as.matrix(antdata_MF.4)[,1]
+
+#####Estimate ancestral states#####
+fit<-fastAnc(pruned.tree,antdata_MF.5,vars=TRUE,CI=TRUE)
+fit
+
+fit$CI[1,]
+range(antdata_MF.5)
+
+##Visualisation: projection of the reconstruction onto the edges of the tree
+obj<-contMap(pruned.tree,antdata_MF.5,plot=FALSE)
+plot(obj,legend=0.7*max(nodeHeights(pruned.tree)),
+     fsize=c(0.4,0.9))
+
+phenogram(pruned.tree,antdata_MF.5,fsize=0.6,spread.costs=c(1,0))
+
+
+
+
+
+
+
+
+###############################Ancestral state reconstruction_Colony_size - at the SPECIES level ########################################
+#continuous trait: CS
+
+#######CHANGE WORKING DIRECTORY#######
+setwd("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Cleaned")
+#Required packages
+library(ape)
+library(phytools)
+library(geiger)
+library(corHMM)
+library(caper)
+library(stringr)
+library(dplyr)
+library(tidyverse)
+
+#Read in data file
+data <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+#Read in genus-level tree file
+#anttree <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Genus_tree/Genus_Level_ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre")
+anttree <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Genus_polytomy_tree.tre")
+
+#Select only ant species
+antdata<-filter(data, type=="ant")
+#View(antdata)
+
+#Remove missing data
+antdata_CS <- filter(antdata, colony.size < 20000000)
+View(antdata_CS)
+
+###Prune tree
+#Match the tip labels from the tree and the species from the database and prune the phylogeny accordingly
+#It is the material that is in the first named set, that is not in the second named set
+pruned.tree<-drop.tip(anttree, setdiff(anttree$tip.label, antdata_CS$animal))
+pruned.tree
+plot.phylo(pruned.tree)
+plotTree(pruned.tree,ftype="i",fsize=0.4,lwd=1)
+
+#Filter through my dataframe and select only the rows that match the tips of my tree
+antdata_CS.1<-filter(antdata_CS, animal %in% pruned.tree$tip.label)
+View(antdata_CS.1)
+
+#Select only the animal and caste columns
+antdata_CS.2 <- antdata_CS.1 %>% dplyr::select(animal, colony.size)
+
+#Log transform the mating frequency data
+antdata_CS.3<-antdata_CS.2
+antdata_CS.3$colony.size<-log(antdata_CS.2$colony.size)
+
+#Convert the values in a column into row names in an existing data frame
+#So that my data is formatted in the same way as the tutorial
+antdata_CS.4<-antdata_CS.3 %>% remove_rownames() %>% column_to_rownames(var="animal")
+View(antdata_CS.4)
+
+###Ensure that phylogeny tip labels are exactly matched to the row names of the database
+a<-name.check(pruned.tree,antdata_CS.4)
+a
+
+#Visualise as a dot tree
+dotTree(pruned.tree,antdata_CS.4,length=20,ftype="i")
+
+#Set the dataframe to a vector
+antdata_CS.5<-as.matrix(antdata_CS.4)[,1]
+
+#####Estimate ancestral states#####
+fit<-fastAnc(pruned.tree,antdata_CS.5,vars=TRUE,CI=TRUE)
+fit
+
+fit$CI[1,]
+range(antdata_CS.5)
+
+##Visualisation: projection of the reconstruction onto the edges of the tree
+obj<-contMap(pruned.tree,antdata_CS.5,plot=FALSE)
+plot(obj,legend=0.7*max(nodeHeights(pruned.tree)),
+     fsize=c(0.4,0.9))
+
+phenogram(pruned.tree,antdata_CS.5,fsize=0.6,spread.costs=c(1,0))
 ########END################################################################################
 
 #The intersection of two sets is the material that they have in common: intersect(setA, setB)
@@ -212,7 +382,8 @@ phenogram(pruned.tree,data4,fsize=0.6,spread.costs=c(1,0))
 #You can use %in% for comparing sets. The result is a logical vector whose length matches the vector on the left
 
 #"is.element" Tests if two vectors (lists) contain the same items (species in this case).
-is.element(data1$genus, pruned.tree$tip.label)
+is.element(antdata_MF$animal, pruned.tree$tip.label)
+
 
 
 

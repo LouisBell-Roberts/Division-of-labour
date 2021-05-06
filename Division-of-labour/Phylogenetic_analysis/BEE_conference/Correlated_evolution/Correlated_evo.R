@@ -18,7 +18,8 @@ d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data
 d$Caste1 <- as.numeric(as.character(d$Caste1))
 data <- d
 
-anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
+#anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
+anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Genus_polytomy_tree.tre")
 #anttree_species <- read.tree(file.choose())
 
 #Select only ant species
