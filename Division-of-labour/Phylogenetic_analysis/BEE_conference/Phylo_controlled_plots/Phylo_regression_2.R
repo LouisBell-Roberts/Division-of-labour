@@ -5,7 +5,8 @@
 
 #*****************************************************************
 
-setwd("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/")
+setwd("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/") 
+#I think this folder is not embedded within the Github, is it? Might be useful to also include it? 
 
 library(tidyverse)
 library(ape)
@@ -16,6 +17,9 @@ library(ggplot2)
 #Read in data file - ensure that caste variable is set a numeric variable
 d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
 #d <- read.csv(file.choose(), header = T)
+
+d <- read.csv("./Data/Cleaned/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T) #This one works on Gijsbert Computer
+
 d$Caste3 <- as.numeric(as.character(d$Caste3))
 data <- d
 
