@@ -14,14 +14,14 @@ library(tidyverse)
 #Data file
 #otherd<-read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Cleaned/Barbetdata.csv", header = T)
 
-#d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
-d <- read.csv(file.choose(), header = T)
+d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Primary Dataset/Data_caste_mating_colonyS_WPM_QueenN_cleaned.csv", header = T)
+#d <- read.csv(file.choose(), header = T)
 d$Caste1 <- as.numeric(as.character(d$Caste1))
 data <- d
 
 #Tree file - species
 #anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
-anttree_species <- read.tree(file.choose())
+anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Genus_polytomy_tree.tre")
 
 #########
 #Caste vs. MF filtering
@@ -49,9 +49,16 @@ antdata_MF.4 <- antdata_MF.3 %>%
 plot(antdata_MF.4$eff.mating.freq.MEAN.harmonic, antdata_MF.4$Caste1)
 
 #PGLS model
-pglsModel <- gls(Caste1 ~ eff.mating.freq.MEAN.harmonic, correlation = corBrownian(1, phy = pruned.tree_sp),
+treez<-multi2di(pruned.tree_sp)
+
+pglsModel <- gls(Caste1 ~ eff.mating.freq.MEAN.harmonic, correlation = corBrownian(1, phy = pruned.tree_sp, form = ~animal),
                  data = antdata_MF.4, method = "ML")
+pglsModel2 <- gls(Caste1 ~ eff.mating.freq.MEAN.harmonic, correlation = corBrownian(1, phy = treez, form = ~animal),
+                 data = antdata_MF.4, method = "ML")
+
+
 summary(pglsModel)
+summary(pglsModel2)
 coef(pglsModel)
 
 #Plot regression
@@ -148,10 +155,56 @@ coef(modelo5)
 plot(antdata_CS.6$Caste1 ~ log(antdata_CS.6$colony.size))
 abline(modelo5)
 
+#######################
+#Multimodel inference with ape and nlme
+
+#Randomly resolve polytomies and create 10 alternative trees
+trees<-replicate(1000,multi2di(pruned.tree_sp),simplify=FALSE)
+class(trees)<-"multiPhylo"
+
+#We will run models on all trees then perform model averaging across them to get parameter estimates
+Cand.models = list()
+niter = 1000
+for (i in 1:niter) {
+  Cand.models[[i]] = gls(Caste1 ~ eff.mating.freq.MEAN.harmonic, data = antdata_MF.4, method = "ML",
+                         correlation = corPagel(1, trees[[i]], fixed = T, form = ~animal))
+}
+
+# if you want to see the particular models
+head(aictab(cand.set = Cand.models, modnames = paste("Tree Nr.", 1:niter, sep = " "),
+            sort = F), 20)
+
+# model averaged intercept
+Int_av = modavg(parm = "(Intercept)", cand.set = Cand.models, modnames = paste("Tree Nr.",
+                                                                               1:niter, sep = " "))
+Int_av$Mod.avg.beta
+Int_av$Lower.CL
+Int_av$Upper.CL
+Int_av$Uncond.SE
+
+# model averaged slope
+beta_av = modavg(parm = "eff.mating.freq.MEAN.harmonic", cand.set = Cand.models, modnames = paste("Tree Nr.",
+                                                                            1:niter, sep = " "))
+beta_av$Mod.avg.beta
+beta_av$Lower.CL
+beta_av$Upper.CL
+beta_av$Uncond.SE
 
 
-
-
+#We will plot all models corresponding to different trees
+plot(antdata_MF.4$eff.mating.freq.MEAN.harmonic, antdata_MF.4$Caste1, xlab = "MF", ylab = "Caste",
+     pch = NA_integer_)
+plot(antdata_MF.4$eff.mating.freq.MEAN.harmonic, antdata_MF.4$Caste1, xlab = "MF", ylab = "Caste")
+# this draws the regression lines corresponding to different trees in the sample:
+for (i in 1:niter) {
+  abline(Cand.models[[i]], col = "lightblue")
+}
+# this is what you would get if you used the consensus phylogenetic tree:
+abline(gls(Caste1 ~ eff.mating.freq.MEAN.harmonic, data = antdata_MF.4, method = "ML", correlation = corPagel(1,
+                                                                                   pruned.tree_sp, fixed = T, form = ~animal)))
+# this is what the model averaged parameters deliniate:
+abline(a = Int_av$Mod.avg.beta, b = beta_av$Mod.avg.beta, lty = 2)
+points(antdata_MF.4$eff.mating.freq.MEAN.harmonic, antdata_MF.4$Caste1, pch = 20)
 
 
 

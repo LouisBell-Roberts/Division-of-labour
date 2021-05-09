@@ -10,8 +10,8 @@ library(dplyr)
 setwd("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen")
 
 ###Load trees.
-RAxML_bipartitions.result.ladderized.dropped<- read.tree(file = "Dryad_Supplementary_File_4_RAxML_bipartitions.result.ladderized.dropped.tre")
-ML_TREE_treepl_185<- read.tree(file = "Dryad_Supplementary_File_7_ML_TREE_treepl_185.tre")
+#RAxML_bipartitions.result.ladderized.dropped<- read.tree(file = "Dryad_Supplementary_File_4_RAxML_bipartitions.result.ladderized.dropped.tre")
+#ML_TREE_treepl_185<- read.tree(file = "Dryad_Supplementary_File_7_ML_TREE_treepl_185.tre")
 ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre<- read.tree(file = "ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre")
 
 #RAxML_bipartitions.result.ladderized.dropped <-
@@ -22,10 +22,10 @@ ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre<- read.tree(file = "ML
 #  read.tree(file = "../../Data/ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre")
 
 #Quick look at the trees
-RAxML_bipartitions.result.ladderized.dropped
-ML_TREE_treepl_185
+#RAxML_bipartitions.result.ladderized.dropped
+#ML_TREE_treepl_185
 ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre
-#About same numner of species, outsdropped will presumably have outgroups dropped (15 species fewer)
+#About same number of species, outsdropped will presumably have outgroups dropped (15 species fewer)
 
 length(
   which(
@@ -60,7 +60,7 @@ head(spec_list) #Remarks like 'could be synonym for xxx' can throw errors. Bette
 
 length(which(spec_list$gs %in% ML_TREE_treepl_185_outsdroppeds.ladderized.increasing.tre$tip.label))
 #335 of the species from the data file are in the tree. Could potentially be increased a bit with some checking (synonyms, spelling etc)
-#you could do thay manually, but there's also ways to automate parts of the process. Look at the package taxize (I can dig up some code too. )
+#you could do that manually, but there's also ways to automate parts of the process. Look at the package taxize (I can dig up some code too. )
 
 
 ###########Reduce the three trees to genus level
