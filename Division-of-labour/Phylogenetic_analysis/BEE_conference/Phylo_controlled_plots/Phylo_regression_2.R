@@ -35,6 +35,7 @@ anttree_species <- read.tree(file = "./Data/Trees//Genus_polytomy_tree.tre") #Fo
 
 #Caste vs. MF filtering - selecting only the ant species from the database along with species that have data on caste number and mating frequency
 antdata_MF <- filter(data, type == 'ant', Caste3 >=1, eff.mating.freq.MEAN.harmonic >=1)
+#GW: I presume you restrict to ants because you only have a tree for them? Otherwise, particularly when doing ASR, having an outgroup is actually very good, so could be worthwhile to include a few 'outgroup' species from wasp/bees?
 
 #Prune tree to match the species in my database - 130 species in pruned tree
 pruned.tree_sp<-drop.tip(anttree_species, setdiff(anttree_species$tip.label, antdata_MF$animal))
@@ -44,6 +45,7 @@ plotTree(pruned.tree_sp,ftype="i",fsize=0.4,lwd=1)
 #Prune the database to select only the rows that match the tips of my tree
 antdata_MF.1<-filter(antdata_MF, animal %in% pruned.tree_sp$tip.label)
 #View(antdata_MF.1)
+nrow(antdata_MF.1) #Sanity check, looks like the numbers match :-)
 
 #Configure dataframe into correct formatting for phylolm - row names must be equal to the species names 
 ##Duplicate the 'animal' column which contains the combined genus and species names
