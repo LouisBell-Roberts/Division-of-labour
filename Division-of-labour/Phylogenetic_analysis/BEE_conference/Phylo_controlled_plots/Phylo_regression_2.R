@@ -26,6 +26,7 @@ data <- d
 #Tree files - 'Genus_polytomy_tree.tre' is the most up-to-date tree
 #anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
 anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Genus_polytomy_tree.tre")
+anttree_species <- read.tree(file = "./Data/Trees//Genus_polytomy_tree.tre") #For Gijsbert computer. I think you are loading it from somewhere else, but I presume it's the same file?
 #anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Polytomy_tree.tre")
 #anttree_species <- read.tree(file.choose())
 
