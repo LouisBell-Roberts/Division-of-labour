@@ -54,6 +54,9 @@ antdata_MF.4 <- antdata_MF.3 %>%
 
 #Models: 1st phylogenetic general linear model, 2nd phylogenetic poisson regression, 3rd non-phylogenetic general linear model
 CasteVs.MF_Phy_lm <- phylolm(Caste3~eff.mating.freq.MEAN.harmonic,data = antdata_MF.4,phy = pruned.tree_sp)
+CasteVs.MF_Phy_lm <- phylolm(Caste3~eff.mating.freq.MEAN.harmonic+log(colony.size),data = antdata_CS_MF.4,phy = pruned.tree_sp_CS_MF)
+CasteVs.MF_Phy_glm <- phyloglm(Caste3~eff.mating.freq.MEAN.harmonic+log(colony.size),data = antdata_CS_MF.4, phy = pruned.tree_sp_CS_MF, method = "poisson_GEE")
+
 CasteVs.MF_Phy_glm <- phyloglm(Caste3~eff.mating.freq.MEAN.harmonic,data = antdata_MF.4, phy = pruned.tree_sp, method = "poisson_GEE")
 CasteVs.MF_lm <- lm(Caste3 ~ eff.mating.freq.MEAN.harmonic, data = antdata_MF.4)
 CasteVs.MF_lm.1 <- lm((Caste3)^2 ~ eff.mating.freq.MEAN.harmonic, data = antdata_MF.4)
@@ -214,7 +217,11 @@ ggplot(antdata_CS.4, aes(x = log(colony.size), y = Caste3)) +
 #Multiple regression
 #CS and MF filtering
 antdata_CS_MF <- filter(data, type == 'ant', Caste3 >=1, colony.size >=1, eff.mating.freq.MEAN.harmonic >=1, polygyny.clean >= 0, Reference.2 != "")
-, polygyny.clean >= 0, Reference.2 != ""
+#, polygyny.clean >= 0, Reference.2 != ""
+
+#Remove some outliers (optional)
+#antdata_CS_MF <- filter(antdata_CS_MF, animal != "Formica_yessensis", animal != "Lasius_neglectus", animal != "Pseudomyrmex_veneficus")
+
 #Prune tree
 pruned.tree_sp_CS_MF<-drop.tip(anttree_species, setdiff(anttree_species$tip.label, antdata_CS_MF$animal))
 pruned.tree_sp_CS_MF
@@ -223,6 +230,7 @@ plotTree(pruned.tree_sp_CS_MF,ftype="i",fsize=0.4,lwd=1)
 #Filter through my dataframe and select only the rows that match the tips of my tree
 antdata_CS_MF.1<-filter(antdata_CS_MF, animal %in% pruned.tree_sp_CS_MF$tip.label)
 #View(antdata_CS_MF.1)
+
 
 #Configure dataframe into correct formatting
 antdata_CS_MF.2 <- cbind(antdata_CS_MF.1$animal, antdata_CS_MF.1)
@@ -250,20 +258,27 @@ CasteVs.CS_MF_PG_Phy_glm <- phyloglm(Caste3~log(colony.size)*eff.mating.freq.MEA
 CasteVs.CS_MF_PG_Phy_glm <- phyloglm(Caste3~polygyny.clean*log(colony.size)+eff.mating.freq.MEAN.harmonic*log(colony.size),
                                      data = antdata_CS_MF.4, 
                                      phy = pruned.tree_sp_CS_MF, method = "poisson_GEE")
-CasteVs.CS_MF_PG_Phy_glm <- phyloglm(Caste3~polygyny.clean,
+CasteVs.CS_MF_PG_Phy_glm <- phyloglm(Caste3~eff.mating.freq.MEAN.harmonic*log(colony.size),
                                      data = antdata_CS_MF.4, 
                                      phy = pruned.tree_sp_CS_MF, method = "poisson_GEE")
+CasteVs.CS_MF_PG_Phy_lm <- phylolm(Caste3~log(colony.size) * eff.mating.freq.MEAN.harmonic + polygyny.clean,
+                                     data = antdata_CS_MF.4, 
+                                     phy = pruned.tree_sp_CS_MF)
 
 summary(CasteVs.CS_MF_Phy_lm)
 summary(CasteVs.CS_MF_Phy_glm)
 summary(CasteVs.CS_MF_lm)
 summary(CasteVs.CS_MF_PG_Phy_glm)
+summary(CasteVs.CS_MF_PG_Phy_lm)
 
 
+#Plotting the interaction between MF and CS on Caste
+A=25
+B=0:15
 
-
-
-
+y=-0.0985621+0.0990318*A+0.0434442*B+(-0.0095733*A*B)
+plot(y, type="l", col="blue", lwd=1, xlab="CS", ylab="Caste", ylim = c(-5,5))
+lines(y, col="pink", lwd=1)
 
 
 
