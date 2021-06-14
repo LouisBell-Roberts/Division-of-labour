@@ -108,17 +108,20 @@ anttree_species1 <- anttree_species
 #Create tree where every genus is a polytomy
 ##Had to adapt Liam's function by adding 'force.ultrametric' to the function - otherwise throws error in relation to branch lengths
 ##This is discussed in more detail on Liam's Phytools blog
+###"root" and "random" are used to change the position of where new species are added to the tree
 
 #anttree_species1<-force.ultrametric(anttree_species1)
 
-for(i in 1:length(species)) anttree_species1<-force.ultrametric(add.species.to.genus(anttree_species1,species[i],where="random"))
+for(i in 1:length(species)) anttree_species1<-force.ultrametric(add.species.to.genus(anttree_species1,species[i],where="root"))
 plotTree(anttree_species1,ftype="i",fsize=0.4,lwd=1)
 
-#If I want to replicate this function many times and create a multi-phylo object, try:
+#If I want to replicate this function many times and create a multi-phylo object, try: *****SECTION NOT WORKING YET*****
 #trees<-replicate(10,multi2di(pruned.tree_sp),simplify=FALSE)
 trees <- replicate(2, for(i in 1:length(species)) anttree_species1<-force.ultrametric(add.species.to.genus(anttree_species1,species[i],where="random")), 
                    simplify = FALSE)
 class(trees)<-"multiPhylo"
+#***************************
+
 
 #Write tree to file
 #write.tree(anttree_species1, file='Genus_polytomy_tree.tre')

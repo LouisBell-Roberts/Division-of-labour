@@ -76,7 +76,8 @@ TMF <- antdata_MF_Caste_bin.2$eff.mating.freq.MEAN.harmonic
 names(TMF)<-antdata_MF_Caste_bin.2$animal
 
 #Fit the model: Trait 1 = MF, Trait 2 = Caste
-ant_correlated_MF_Caste<-fitPagel(pruned.tree_sp, x = TMF, y = Tcaste)
+##Smaller AIC = better model
+ant_correlated_MF_Caste<-fitPagel(pruned.tree_sp, x = TMF, y = Tcaste, model = "ARD", dep.var = "y")
 ant_correlated_MF_Caste
 plot.fitPagel(ant_correlated_MF_Caste)
 

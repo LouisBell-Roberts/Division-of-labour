@@ -20,7 +20,7 @@ d <- read.csv("/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data
 d$Caste3 <- as.numeric(as.character(d$Caste3))
 data <- d
 
-anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
+#anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
 anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Genus_polytomy_tree.tre")
 
 #anttree_species <- read.tree(file.choose())
@@ -84,8 +84,6 @@ plotRECON(phy=ancestral_hrm9$phy,likelihoods = ancestral_hrm9$states,pie.cex=0.3
 plotRECON(phy=ancestral_hrm5$phy,likelihoods = ancestral_hrm5$states,pie.cex=0.3, show.tip.label = T,
           piecolors = c("red","black", "yellow", "purple"),
           tip.color = c("red","black", "yellow", "purple")[plotvec])
-
-
 
 
 
