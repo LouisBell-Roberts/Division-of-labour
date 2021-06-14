@@ -150,7 +150,26 @@ summary(mf_cs_pg_int)
 aicw(c(mf$aic, cs$aic, pg$aic, mf_cs$aic, mf_cs_int$aic, mf_pg$aic, mf_pg_int$aic, cs_pg$aic, cs_pg_int$aic, mf_cs_pg$aic, mf_cs_int_pg$aic, mf_cs_pg_int$aic))
 #
 
+####GW Notes
+#So looking at the above I guess these are the reasonable (>10%) candidate models from best to worst. With the top two very close to each other (~22%, and number 3 and 4 too ~13%)
+summary(cs_pg_int)
+summary(cs)
+summary(mf_cs)
+summary(mf_cs_pg_int)
+#So I guess this tells us: CS is definitely important (no big surprise), because always included. Polygyny probably, because in best model, and fourth, and potentiallly MF. 
+#If Mf inluced however, it's not really significant. So really only CS and potentially polygyny? 
+#I guess this is not entirely in line with expectations, right? 
+#So do we trust this result and why not/yes. 
+#Have you done any model anaylysis on these / the best model? Larger colony size = more castest make sense, more polygyny more castes less so? 
 
+#Other approach can we calculate aic for the poissoin regressions? 
+#Look at model from above? 
+summary(Phy_glm)
+#In principle should be easy to calculate aic with basic equation, if we have loglikelihood? 
+Phy_glm$logLik
+#It doesn't give it, why? 
+#Looking at original paper for the poisson_GEE method (https://pubmed.ncbi.nlm.nih.gov/12381290/), I think that's because it's actually using a quasi-likelihood estimator, rather than a likelihood estimator.
+#Can you calculate 'quasi-aic' for these? Perhaps: useful Ben Bolker Vignette (do you know him?): https://cran.r-project.org/web/packages/bbmle/vignettes/quasi.pdf
 
 
 ###########Old stuff after here and some code for using 'loo'############
