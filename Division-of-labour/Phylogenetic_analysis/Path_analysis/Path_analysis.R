@@ -19,7 +19,7 @@ d$Caste3 <- as.numeric(as.character(d$Caste3))
 d$number.queens.MEAN <- as.numeric(as.character(d$number.queens.MEAN))
 data <- d
 
-#Tree files - 'Genus_polytomy_tree.tre' is the most up-to-date tree
+#Tree files - 'Genus_polytomy_tree.tre' is the most up-to-date tree and should be used
 #anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
 anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Genus_polytomy_tree.tre")
 

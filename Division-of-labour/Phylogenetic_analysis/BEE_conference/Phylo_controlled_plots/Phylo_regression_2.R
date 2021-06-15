@@ -23,7 +23,7 @@ d$Caste3 <- as.numeric(as.character(d$Caste3))
 d$number.queens.MEAN <- as.numeric(as.character(d$number.queens.MEAN))
 data <- d
 
-#Tree files - 'Genus_polytomy_tree.tre' is the most up-to-date tree
+#Tree files - 'Genus_polytomy_tree.tre' is the most up-to-date tree and should be used
 #anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
 anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Genus_polytomy_tree.tre")
 #anttree_species <- read.tree(file = "./Data/Trees//Genus_polytomy_tree.tre") #For Gijsbert computer. I think you are loading it from somewhere else, but I presume it's the same file? - yes
@@ -49,7 +49,7 @@ dplot(sqrt(antdata_MF$eff.mating.freq.MEAN.harmonic-min(antdata_MF$eff.mating.fr
 pruned.tree_sp<-drop.tip(anttree_species, setdiff(anttree_species$tip.label, antdata_MF$animal))
 pruned.tree_sp
 plotTree(pruned.tree_sp,ftype="i",fsize=0.4,lwd=1)
-
+dev.off()
 #Prune the database to select only the rows that match the tips of my tree
 antdata_MF.1<-filter(antdata_MF, animal %in% pruned.tree_sp$tip.label)
 #View(antdata_MF.1)
@@ -584,6 +584,7 @@ antdata_multiple_regression <- filter(data, type == 'ant', Caste3 >=1, eff.matin
 pruned.tree_sp_multiple_regression<-drop.tip(anttree_species, setdiff(anttree_species$tip.label, antdata_multiple_regression$animal))
 pruned.tree_sp_multiple_regression
 plotTree(pruned.tree_sp_multiple_regression,ftype="i",fsize=0.4,lwd=1)
+dev.off()
 
 #Filter through my dataframe and select only the rows that match the tips of my tree
 antdata_multiple_regression.1<-filter(antdata_multiple_regression, animal %in% pruned.tree_sp_multiple_regression$tip.label)
@@ -613,11 +614,97 @@ antdata_multiple_regression.4 <- antdata_multiple_regression.3 %>%
 ###Models
 #MCMC test - see if concur with brms. Passes the test
 inv.pruned.tree_sp<-inverseA(pruned.tree_sp_multiple_regression,nodes="TIPS",scale=TRUE)
-prior<-list(G=list(G1=list(V=1,nu=0.02)),R=list(V=1,nu=0.02))
+#When fitting priors in THIS format, it is only refering to the random effects. Fitting priors for fixed effects is rare
+prior<-list(G=list(G1=list(V=1,nu=0.002)),R=list(V=1,nu=0.002))
+prior_ext<-list(R=list(V=1,nu=1), G=list(G1=list(V=1,nu=1,alpha.mu=0,alpha.V=1000)))
+prior_exp<-list(R=list(V=1, fix=1), G=list(G1=list(V=1, nu=1, alpha.mu=0, alpha.V=1000))) #quoted from the course notes
+prior_exp.1<-list(R=list(V=10, fix=1), G=list(G1=list(V=1, nu=1, alpha.mu=0, alpha.V=1000))) #quoted from the course notes but with higher V
+prior.iw<-list(R=list(V=1, nu=1), G=list(G1=list(V=1, nu=1)))
+prior.chi=list(R=list(V=1, fix=1), G=list(G1=list(V=1, nu=1000, alpha.mu=0,alpha.V=1)))
+p.var<-var(antdata_multiple_regression.4$Caste3,na.rm=TRUE) 
+prior1.1<-list(G=list( G1=list(V=matrix(p.var/2),n=1)), R=list(V=matrix(p.var/2),n=1))
+#Defined as 'proper priors'
+p.var <- var(antdata_multiple_regression.4$Caste3, na.rm = TRUE)
+prior.proper <- list(G = list(G1 = list(V = matrix(p.var * 0.05), nu = 1)), R = list(V = matrix(p.var * 0.95), nu = 1))
+
 CasteVs.MF_CS_glm_MCMCglmm<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
-                                    family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                    family="gaussian",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
                                     prior=prior,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500)
-summary(CasteVs.MF_CS_glm_MCMCglmm)
+
+CasteVs.MF_CS_glm_MCMCglmm.a<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                     family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                     prior=prior,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500) #nu made smaller
+
+CasteVs.MF_CS_glm_MCMCglmm.b<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500) #nu made bigger
+
+CasteVs.MF_CS_glm_MCMCglmm.c<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior,data=antdata_multiple_regression.4,nitt=1500000,burnin=10000,thin=500) #very large number of iterations with small nu. nit 1000000 was not enough
+
+CasteVs.MF_CS_glm_MCMCglmm.d<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior,data=antdata_multiple_regression.4,nitt=2000000,burnin=10000,thin=500)
+CasteVs.MF_CS_glm_MCMCglmm.e<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior_ext,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500) #using prior extension
+CasteVs.MF_CS_glm_MCMCglmm.f<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior_ext,data=antdata_multiple_regression.4,nitt=10000000,burnin=10000,thin=700)#using prior extension and more nit
+CasteVs.MF_CS_glm_MCMCglmm.g<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior.iw,data=antdata_multiple_regression.4,nitt=5000000,burnin=10000,thin=500) #inv.wishart prior - distributions look a lot better!
+CasteVs.MF_CS_glm_MCMCglmm.h<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior.proper,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500) #using 'proper' priors
+CasteVs.MF_CS_glm_MCMCglmm.h<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior1.1,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500) #prior1.1
+CasteVs.MF_CS_glm_MCMCglmm.i<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior_exp,data=antdata_multiple_regression.4,nitt=1000000,burnin=10000,thin=500) #prior from course notes
+CasteVs.MF_CS_glm_MCMCglmm.j<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior.chi,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500) #prior chi
+CasteVs.MF_CS_glm_MCMCglmm.k<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior_exp,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500, slice = T) #prior from course notes with slice
+CasteVs.MF_CS_glm_MCMCglmm.l<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior_exp.1,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500, slice = T) #prior_exp with V=10
+
+#Checking for convergence = we should see no trend in the trace (i.e. still increasing)
+#Checking for autocorrelation = values in the trace are widely spread (goes up and down) + autocorr.diag() function gives values all below 0.1 from the 1st lag
+##When autocorrelation is high, the chain needs to be run for longer and thin increased
+###nitt/thin = 1000-2000 and Lag < 0.1
+#Autocorrelation is not the problem per say, but it reduces the effective size parameter which is a problem
+#Curves of the trace should be unimodal, symmetrical and not aberrant
+#To get a larger effective sample size, run the chain for longer (>10,000 sample size)
+#Posterior distribution refers to the plots that you get from the MCMCglmm model (lines and histogram - give the values in the summary output!)
+#Posterior distributions of the variance components refers to the plots titled 'animal' and 'units' - these are more interesting than the 
+#The variance components:
+##Va = animal = additive genetic variance
+##Vr = residual variance = units
+#The influence of the prior distribution fade away with a sufficient sample size.
+#Model selection with DIC- DIC are not well understood and that the DIC may be focused at the wrong level for most people’s intended level of inference - particularly with non-Gaussian responses
+#This prior specification used to be used a lot because it was believed to be relatively uninformative, and is equivalent to an inverse-gamma prior with shape and scale equal to 0.001. In many cases it is relatively uninformative but when the posterior distribution for the variances has suport close to zero it can behave poorly.
+
+summary(CasteVs.MF_CS_glm_MCMCglmm.i) #Despite using quite different priors, coefficients remain roughly the same (sample size must be large enough that prior specification doesn't matter too much)
+autocorr.diag(CasteVs.MF_CS_glm_MCMCglmm.i$Sol)
+autocorr.diag(CasteVs.MF_CS_glm_MCMCglmm.i$VCV)
+posterior.mode(CasteVs.MF_CS_glm_MCMCglmm.i$VCV)
+HPDinterval(CasteVs.MF_CS_glm_MCMCglmm.i$VCV)
+effectiveSize(CasteVs.MF_CS_glm_MCMCglmm.i$Sol)
+effectiveSize(CasteVs.MF_CS_glm_MCMCglmm.i$VCV)
+
+heidel.diag(CasteVs.MF_CS_glm_MCMCglmm.g$VCV)
+
+herit <- CasteVs.MF_CS_glm_MCMCglmm.g$VCV[, "animal"]/(CasteVs.MF_CS_glm_MCMCglmm.g$VCV[, "animal"] + CasteVs.MF_CS_glm_MCMCglmm.g$VCV[, "units"])
+effectiveSize(herit)
+mean(herit)
+HPDinterval(herit) #Display 95% credible interval
+plot(herit)
 
 ##brms models:
 animal <- pruned.tree_sp_multiple_regression
@@ -670,6 +757,15 @@ brms_norm_MF_CS <-brm(
   chains = 2, cores = 2, iter = 4000,
   control = list(adapt_delta = 0.95))
 summary(brms_negbinom_MF_CS, waic = TRUE)
+
+#MF + CS
+brms_negbinom_MF_CS <-brm(
+  Caste3 ~ log(eff.mating.freq.MEAN.harmonic) + log(colony.size) + (1|gr(animal, cov = C)),
+  data = antdata_multiple_regression.4, family = negbinomial(), 
+  data2 = list(C = C),
+  chains = 2, cores = 2, iter = 4000,
+  control = list(adapt_delta = 0.95))
+summary(brms_negbinom_MF_CS)
 
 #MF * CS
 brms_negbinom_MF_CS_interaction <-brm(
@@ -761,6 +857,15 @@ brms_negbinom_MF_CS_PG_bin <-brm(
   control = list(adapt_delta = 0.95))
 summary(brms_negbinom_MF_CS_PG_bin)
 
+#MF + CS * PG (binary)
+brms_negbinom_MF_CS_int_PG_bin <-brm(
+  Caste3 ~ log(eff.mating.freq.MEAN.harmonic) + log(colony.size) * polygyny.clean + (1|gr(animal, cov = C)),
+  data = antdata_multiple_regression.4, family = negbinomial(), 
+  data2 = list(C = C),
+  chains = 2, cores = 2, iter = 4000,
+  control = list(adapt_delta = 0.95))
+summary(brms_negbinom_MF_CS_int_PG_bin)
+
 #MF * CS * PG (binary)
 brms_negbinom_MF_CS_PG_bin_interaction <-brm(
   Caste3 ~ log(eff.mating.freq.MEAN.harmonic) * log(colony.size) + polygyny.clean + (1|gr(animal, cov = C)),
@@ -792,7 +897,7 @@ summary(brms_negbinom_MF_CS_PG_cont_interaction)
 #Model selection using looAic - Bayesian version of Aic
 ##All very similar but Caste ~ MF + CS seems to be the best
 loo(brms_negbinom_MF, brms_negbinom_CS, brms_negbinom_MF_CS, brms_negbinom_MF_PG_bin, brms_negbinom_CS_PG_bin, brms_negbinom_MF_CS_PG_bin)
-loo_compare(loo(brms_negbinom_MF), loo(brms_negbinom_CS), loo(brms_negbinom_MF_CS), loo(brms_negbinom_MF_PG_bin), loo(brms_negbinom_CS_PG_bin), loo(brms_negbinom_MF_CS_PG_bin))
+loo_compare(loo(brms_negbinom_MF), loo(brms_negbinom_CS), loo(brms_negbinom_MF_CS), loo(brms_negbinom_MF_PG_bin), loo(brms_negbinom_CS_PG_bin), loo(brms_negbinom_MF_CS_PG_bin), loo(brms_negbinom_MF_CS_int_PG_bin))
 
 loo(brms_negbinom_MF, brms_negbinom_CS, brms_negbinom_MF_CS, brms_negbinom_MF_CS_interaction, brms_negbinom_MF_PG_bin, brms_negbinom_MF_PG_bin_interaction, brms_negbinom_MF_PG_cont, 
     brms_negbinom_MF_PG_cont_interaction, brms_negbinom_CS_PG_bin, brms_negbinom_CS_PG_bin_interaction, brms_negbinom_CS_PG_cont, 
@@ -872,6 +977,13 @@ car::vif(CasteVs.CS_MF_glm_poisson.1)
 ## Caste ~ MF + CS + PG (binary)
 CasteVs.CS_MF_lm.2 <- lm(Caste3 ~ log(colony.size) + log(eff.mating.freq.MEAN.harmonic) + polygyny.clean, data = antdata_multiple_regression)
 CasteVs.CS_MF_glm_poisson.2 <- glm(Caste3 ~ log(colony.size) + log(eff.mating.freq.MEAN.harmonic) + polygyny.clean, family="poisson",data = antdata_multiple_regression)
+plot(log(antdata_multiple_regression$eff.mating.freq.MEAN.harmonic), log(antdata_multiple_regression$colony.size))
+CasteVs.PG_MF_lm <- lm(polygyny.clean ~ log(eff.mating.freq.MEAN.harmonic), data = antdata_multiple_regression)
+plot(log(antdata_multiple_regression$eff.mating.freq.MEAN.harmonic), antdata_multiple_regression$polygyny.clean)
+abline(CasteVs.PG_MF_lm)
+CasteVs.PG_CS_lm <- lm(polygyny.clean ~ log(colony.size), data = antdata_multiple_regression)
+plot(log(antdata_multiple_regression$colony.size), antdata_multiple_regression$polygyny.clean)
+abline(CasteVs.PG_CS_lm)
 summary(CasteVs.CS_MF_lm.2)
 summary(CasteVs.CS_MF_glm_poisson.2)
 car::vif(CasteVs.CS_MF_lm.2)
