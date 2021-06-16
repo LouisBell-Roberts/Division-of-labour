@@ -23,6 +23,8 @@ data <- d
 #anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Nelsen_ultrametric_species/ultrametric_Nelsen_sp.tre")
 anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st_project_rotation/Data/Trees/Polytomy_tree/Genus_polytomy_tree.tre")
 
+#For Gijsbert Computer: anttree_species <- read.tree(file = "./Data/Trees//Genus_polytomy_tree.tre") #Am I using the right one here? 
+
 #Filter data
 antdata_multiple_regression <- filter(data, type == 'ant', Caste3 >=1, eff.mating.freq.MEAN.harmonic >=1, colony.size >=1, polygyny.clean >= 0, Reference.2 != "")
 
@@ -95,7 +97,12 @@ plot(average_model, algorithm = 'mds', curvature = 0.1)
 
 average_model_full <- average(result, avg_method = "full")
 plot(average_model_full, algorithm = 'mds', curvature = 0.1)
+coef_plot(average_model_full)
+
+average_model <- average(result)
+plot(average_model, algorithm = 'mds', curvature = 0.1)
 coef_plot(average_model)
+
 
 result$d_sep$ten
 
