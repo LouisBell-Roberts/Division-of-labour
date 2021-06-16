@@ -8,6 +8,7 @@ library(phylolm)
 library(phytools)
 library(ggplot2)
 library(geiger)
+library(gee)
 
 
 
@@ -156,20 +157,63 @@ summary(cs_pg_int)
 summary(cs)
 summary(mf_cs)
 summary(mf_cs_pg_int)
-#So I guess this tells us: CS is definitely important (no big surprise), because always included. Polygyny probably, because in best model, and fourth, and potentiallly MF. 
-#If Mf inluced however, it's not really significant. So really only CS and potentially polygyny? 
+#So I guess this tells us: CS is definitely important (no big surprise), because always included. Polygyny probably, because in best model, and fourth, and potentially MF. 
+#If Mf influenced however, it's not really significant. So really only CS and potentially polygyny? 
 #I guess this is not entirely in line with expectations, right? 
 #So do we trust this result and why not/yes. 
-#Have you done any model anaylysis on these / the best model? Larger colony size = more castest make sense, more polygyny more castes less so? 
+#Have you done any model analysis on these / the best model? Larger colony size = more castes make sense, more polygyny more castes less so? 
 
 #Other approach can we calculate aic for the poissoin regressions? 
 #Look at model from above? 
 summary(Phy_glm)
 #In principle should be easy to calculate aic with basic equation, if we have loglikelihood? 
 Phy_glm$logLik
+Phy_glm$scale
 #It doesn't give it, why? 
 #Looking at original paper for the poisson_GEE method (https://pubmed.ncbi.nlm.nih.gov/12381290/), I think that's because it's actually using a quasi-likelihood estimator, rather than a likelihood estimator.
 #Can you calculate 'quasi-aic' for these? Perhaps: useful Ben Bolker Vignette (do you know him?): https://cran.r-project.org/web/packages/bbmle/vignettes/quasi.pdf
+
+#Using compar.gee from ape to create models:
+gee_mf <- compar.gee(Caste3 ~ log(eff.mating.freq.MEAN.harmonic), data = model_selection_data.4, family = "poisson",
+              phy = pruned.tree)
+gee_cs <- compar.gee(Caste3 ~ log(colony.size), data = model_selection_data.4, family = "poisson",
+              phy = pruned.tree)
+gee_pg <- compar.gee(Caste3 ~ polygyny.clean, data = model_selection_data.4, family = "poisson",
+              phy = pruned.tree)
+gee_mf_cs <- compar.gee(Caste3 ~ log(colony.size) + log(eff.mating.freq.MEAN.harmonic), data = model_selection_data.4, family = "poisson",
+                 phy = pruned.tree)
+gee_mf_cs_int <- compar.gee(Caste3 ~ log(colony.size) * log(eff.mating.freq.MEAN.harmonic), data = model_selection_data.4, family = "poisson",
+                     phy = pruned.tree)
+gee_mf_pg <- compar.gee(Caste3 ~ log(eff.mating.freq.MEAN.harmonic) + polygyny.clean, data = model_selection_data.4, family = "poisson",
+                 phy = pruned.tree)
+gee_mf_pg_int <- compar.gee(Caste3 ~ log(eff.mating.freq.MEAN.harmonic) * polygyny.clean, data = model_selection_data.4, family = "poisson",
+                     phy = pruned.tree)
+gee_cs_pg <- compar.gee(Caste3 ~ log(colony.size) + polygyny.clean, data = model_selection_data.4, family = "poisson",
+                 phy = pruned.tree)
+gee_cs_pg_int <- compar.gee(Caste3 ~ log(colony.size) * polygyny.clean, data = model_selection_data.4, family = "poisson",
+                     phy = pruned.tree)
+gee_mf_cs_pg <- compar.gee(Caste3 ~ log(colony.size) + log(eff.mating.freq.MEAN.harmonic) + polygyny.clean, data = model_selection_data.4, family = "poisson",
+                    phy = pruned.tree)
+gee_mf_cs_int_pg <- compar.gee(Caste3 ~ log(colony.size) * log(eff.mating.freq.MEAN.harmonic) + polygyny.clean, data = model_selection_data.4, family = "poisson",
+                        phy = pruned.tree)
+gee_mf_cs_pg_int <- compar.gee(Caste3 ~ log(colony.size) * polygyny.clean + log(eff.mating.freq.MEAN.harmonic), data = model_selection_data.4, family = "poisson",
+                        phy = pruned.tree)
+
+#QIC model selection
+
+gee_mf$QIC
+gee_cs$QIC #1st
+gee_pg$QIC #2nd
+gee_mf_cs$QIC
+gee_mf_cs_int$QIC
+gee_mf_pg$QIC
+gee_mf_pg_int$QIC
+gee_cs_pg$QIC
+gee_cs_pg_int$QIC #3rd
+gee_mf_cs_pg$QIC
+gee_mf_cs_int_pg$QIC
+gee_mf_cs_pg_int$QIC #4th
+
 
 
 ###########Old stuff after here and some code for using 'loo'############

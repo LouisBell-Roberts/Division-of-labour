@@ -26,6 +26,10 @@ anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st
 #Filter data
 antdata_multiple_regression <- filter(data, type == 'ant', Caste3 >=1, eff.mating.freq.MEAN.harmonic >=1, colony.size >=1, polygyny.clean >= 0, Reference.2 != "")
 
+#Optional: make Caste3 a binary variable - then perform logistic regression (phylopath does this automatically)
+antdata_multiple_regression$Caste3 <- ifelse(antdata_multiple_regression$Caste3 > 1,1,0)
+table(antdata_multiple_regression$Caste3) #Might be a little light on sample size if we plan to use 3 independent variables rather than 2...
+
 #Prune tree
 pruned.tree_sp_multiple_regression<-drop.tip(anttree_species, setdiff(anttree_species$tip.label, antdata_multiple_regression$animal))
 pruned.tree_sp_multiple_regression

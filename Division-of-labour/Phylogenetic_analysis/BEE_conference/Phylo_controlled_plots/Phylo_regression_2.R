@@ -673,7 +673,9 @@ CasteVs.MF_CS_glm_MCMCglmm.k<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)
 CasteVs.MF_CS_glm_MCMCglmm.l<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
                                        family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
                                        prior=prior_exp.1,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500, slice = T) #prior_exp with V=10
-
+CasteVs.MF_CS_glm_MCMCglmm.m<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size) + polygyny.clean,random=~animal,
+                                       family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
+                                       prior=prior,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500)
 #Checking for convergence = we should see no trend in the trace (i.e. still increasing)
 #Checking for autocorrelation = values in the trace are widely spread (goes up and down) + autocorr.diag() function gives values all below 0.1 from the 1st lag
 ##When autocorrelation is high, the chain needs to be run for longer and thin increased
