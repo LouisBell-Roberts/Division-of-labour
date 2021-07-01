@@ -617,6 +617,7 @@ inv.pruned.tree_sp<-inverseA(pruned.tree_sp_multiple_regression,nodes="TIPS",sca
 #When fitting priors in THIS format, it is only refering to the random effects. Fitting priors for fixed effects is rare
 prior<-list(G=list(G1=list(V=1,nu=0.002)),R=list(V=1,nu=0.002))
 prior_ext<-list(R=list(V=1,nu=1), G=list(G1=list(V=1,nu=1,alpha.mu=0,alpha.V=1000)))
+prior_ext.2<-list(R=list(V=1,nu=0.02), G=list(G1=list(V=1,nu=1,alpha.mu=0,alpha.V=1000)))
 prior_exp<-list(R=list(V=1, fix=1), G=list(G1=list(V=1, nu=1, alpha.mu=0, alpha.V=1000))) #quoted from the course notes
 prior_exp.1<-list(R=list(V=10, fix=1), G=list(G1=list(V=1, nu=1, alpha.mu=0, alpha.V=1000))) #quoted from the course notes but with higher V
 prior.iw<-list(R=list(V=1, nu=1), G=list(G1=list(V=1, nu=1)))
@@ -637,7 +638,7 @@ CasteVs.MF_CS_glm_MCMCglmm.a<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)
 
 CasteVs.MF_CS_glm_MCMCglmm.b<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
                                        family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
-                                       prior=prior,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500) #nu made bigger
+                                       prior=prior_ext.2,data=antdata_multiple_regression.4,nitt=250000,burnin=10000,thin=500) #nu made bigger
 
 CasteVs.MF_CS_glm_MCMCglmm.c<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)+log(colony.size),random=~animal,
                                        family="poisson",ginverse=list(animal=inv.pruned.tree_sp$Ainv),
@@ -692,15 +693,16 @@ CasteVs.MF_CS_glm_MCMCglmm.m<-MCMCglmm(Caste3~log(eff.mating.freq.MEAN.harmonic)
 #Model selection with DIC- DIC are not well understood and that the DIC may be focused at the wrong level for most people’s intended level of inference - particularly with non-Gaussian responses
 #This prior specification used to be used a lot because it was believed to be relatively uninformative, and is equivalent to an inverse-gamma prior with shape and scale equal to 0.001. In many cases it is relatively uninformative but when the posterior distribution for the variances has suport close to zero it can behave poorly.
 
-summary(CasteVs.MF_CS_glm_MCMCglmm.i) #Despite using quite different priors, coefficients remain roughly the same (sample size must be large enough that prior specification doesn't matter too much)
-autocorr.diag(CasteVs.MF_CS_glm_MCMCglmm.i$Sol)
-autocorr.diag(CasteVs.MF_CS_glm_MCMCglmm.i$VCV)
-posterior.mode(CasteVs.MF_CS_glm_MCMCglmm.i$VCV)
-HPDinterval(CasteVs.MF_CS_glm_MCMCglmm.i$VCV)
-effectiveSize(CasteVs.MF_CS_glm_MCMCglmm.i$Sol)
-effectiveSize(CasteVs.MF_CS_glm_MCMCglmm.i$VCV)
+summary(CasteVs.MF_CS_glm_MCMCglmm.b) #Despite using quite different priors, coefficients remain roughly the same (sample size must be large enough that prior specification doesn't matter too much)
+plot(CasteVs.MF_CS_glm_MCMCglmm.b)
+autocorr.diag(CasteVs.MF_CS_glm_MCMCglmm.b$Sol)
+autocorr.diag(CasteVs.MF_CS_glm_MCMCglmm.b$VCV)
+posterior.mode(CasteVs.MF_CS_glm_MCMCglmm.b$VCV)
+HPDinterval(CasteVs.MF_CS_glm_MCMCglmm.b$VCV)
+effectiveSize(CasteVs.MF_CS_glm_MCMCglmm.b$Sol)
+effectiveSize(CasteVs.MF_CS_glm_MCMCglmm.b$VCV)
 
-heidel.diag(CasteVs.MF_CS_glm_MCMCglmm.g$VCV)
+heidel.diag(CasteVs.MF_CS_glm_MCMCglmm.b$VCV)
 
 herit <- CasteVs.MF_CS_glm_MCMCglmm.g$VCV[, "animal"]/(CasteVs.MF_CS_glm_MCMCglmm.g$VCV[, "animal"] + CasteVs.MF_CS_glm_MCMCglmm.g$VCV[, "units"])
 effectiveSize(herit)
@@ -721,6 +723,28 @@ brms_negbinom_MF <-brm(
   chains = 2, cores = 2, iter = 4000,
   control = list(adapt_delta = 0.95))
 summary(brms_negbinom_MF)
+plot(conditional_effects(brms_negbinom_MF))
+
+#creating conditional effects object
+c_eff <- conditional_effects(brms_negbinom_MF, categorical = T)
+
+me <- conditional_effects(brms_negbinom_MF)
+plot(me)[[1]] + ggplot2::ylim(0, 4)
+plot(me)[[1]] + ggplot2::aes(log(eff.mating.freq.MEAN.harmonic)) + theme_bw()
+
+
+ggplot(iris, aes(log10(Sepal.Length), log10(Petal.Length))) +
+  geom_point() +
+  geom_smooth(se=FALSE, method="lm") +
+  theme_bw()
+
+plot(me, plot = F)[[1]] + 
+  scale_color_grey() +
+  scale_fill_grey()
+
+
+#creating plot
+ugly_plot <- plot(c_eff, plot = FALSE)[[1]] + 
 
 #CS
 brms_negbinom_CS <-brm(

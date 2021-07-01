@@ -27,10 +27,13 @@ anttree_species <- read.tree(file = "/Users/louis.bell-roberts/Documents/DTP_1st
 
 #Filter data
 antdata_multiple_regression <- filter(data, type == 'ant', Caste3 >=1, eff.mating.freq.MEAN.harmonic >=1, colony.size >=1, polygyny.clean >= 0, Reference.2 != "")
+antdata_multiple_regression$polygyny.clean <- as.factor(antdata_multiple_regression$polygyny.clean)
 
-#Optional: make Caste3 a binary variable - then perform logistic regression (phylopath does this automatically)
+#########################
+#Optional: make Caste3 a binary variable - then perform logistic regression
 antdata_multiple_regression$Caste3 <- ifelse(antdata_multiple_regression$Caste3 > 1,1,0)
 table(antdata_multiple_regression$Caste3) #Might be a little light on sample size if we plan to use 3 independent variables rather than 2...
+#########################
 
 #Prune tree
 pruned.tree_sp_multiple_regression<-drop.tip(anttree_species, setdiff(anttree_species$tip.label, antdata_multiple_regression$animal))
@@ -56,13 +59,11 @@ antdata_multiple_regression.5$colony.size <- log(antdata_multiple_regression.5$c
 antdata_multiple_regression.5$eff.mating.freq.MEAN.harmonic <- log(antdata_multiple_regression.5$eff.mating.freq.MEAN.harmonic)
 
 
-
 #Define the models for the analysis: response before the ~, effector after the ~
 models <- define_model_set(
   one   = c(Caste3 ~ eff.mating.freq.MEAN.harmonic + colony.size),
   two   = c(Caste3 ~ eff.mating.freq.MEAN.harmonic),
   three = c(Caste3 ~ colony.size),
-  four  = c(Caste3 ~ eff.mating.freq.MEAN.harmonic, colony.size ~ eff.mating.freq.MEAN.harmonic),
   five  = c(Caste3 ~ eff.mating.freq.MEAN.harmonic, colony.size ~ eff.mating.freq.MEAN.harmonic, Caste3 ~ colony.size),
   six   = c(Caste3 ~ eff.mating.freq.MEAN.harmonic + colony.size + polygyny.clean),
   seven = c(Caste3 ~ eff.mating.freq.MEAN.harmonic + colony.size, polygyny.clean ~ eff.mating.freq.MEAN.harmonic),
@@ -82,37 +83,38 @@ models <- define_model_set(
   )  
 plot_model_set(models)
 
+#result <- phylo_path(m, data, tree, model = "OUrandomRoot", method = "logistic_MPLE")
+#result <- phylo_path(models, data = antdata_multiple_regression.5, tree = pruned.tree_sp_multiple_regression, model = 'lambda', method = "poisson_GEE")
+
 result <- phylo_path(models, data = antdata_multiple_regression.5, tree = pruned.tree_sp_multiple_regression, model = 'lambda')
 result
 plot(summary(result))
-plot(models$ten)
 plot(models$fourteen)
-plot(average(result))
+plot(models$five)
+plot(models$ten)
+plot(models$nineteen)
 
-
+#Plot the best model
 best_model <- best(result)
 plot(best_model)
+#Instead of using the best model, we can use the average of the best models (CIC cutoff of 2), weighted by their relative evidence.
 average_model <- average(result)
 plot(average_model, algorithm = 'mds', curvature = 0.1)
 
+#Averages path coefficients including cases where the coefficient is 0 - produces plots with 'shrinkage' to represent uncertainty
 average_model_full <- average(result, avg_method = "full")
 plot(average_model_full, algorithm = 'mds', curvature = 0.1)
 coef_plot(average_model_full)
 
-average_model <- average(result)
-plot(average_model, algorithm = 'mds', curvature = 0.1)
 coef_plot(average_model)
+coef_plot(average_model_full, reverse_order = TRUE) + 
+     ggplot2::coord_flip() + 
+     ggplot2::theme_bw()
 
 
 result$d_sep$ten
 
 ########
-,
-six   = c(Caste3 ~ eff.mating.freq.MEAN.harmonic + colony.size + polygyny.clean)
-nine  = c(Caste3 ~ RS, RS ~ LS),
-  .common = c(LS ~ BM, NL ~ BM, DD ~ NL)
-)
-
 
 
 

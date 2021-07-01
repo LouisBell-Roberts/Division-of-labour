@@ -114,6 +114,7 @@ inv.pruned.tree_sp<-inverseA(pruned.tree,nodes="TIPS",scale=TRUE)
 prior<-list(G=list(G1=list(V=1,nu=0.002)),R=list(V=1,nu=0.002))
 prior2<-list(G=list(G1=list(V=1,nu=0.02)),R=list(V=1,nu=0.02))
 prior_ext<-list(R=list(V=1,nu=1), G=list(G1=list(V=1,nu=1,alpha.mu=0,alpha.V=1000)))
+prior_ext.2<-list(R=list(V=1,nu=0.02), G=list(G1=list(V=1,nu=1,alpha.mu=0,alpha.V=1000)))
 prior_exp<-list(R=list(V=1, fix=1), G=list(G1=list(V=1, nu=1, alpha.mu=0, alpha.V=1000))) #quoted from the course notes
 prior_exp.1<-list(R=list(V=10, fix=1), G=list(G1=list(V=1, nu=1, alpha.mu=0, alpha.V=1000))) #quoted from the course notes but with higher V
 prior.iw<-list(R=list(V=1, nu=1), G=list(G1=list(V=1, nu=1)))
